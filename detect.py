@@ -100,7 +100,7 @@ def detect(im, param_vals):
     # to the stride size, and pixel coordinates.
     for i, (scaled_im, y_val) in enumerate(zip(scaled_ims, y_vals)):
         for window_coords in numpy.argwhere(y_val[0, :, :, 0] >
-                                                       -math.log(1./0.99 - 1)):
+                                                       -math.log(1./0.59 - 1)):
             letter_probs = (y_val[0,
                                   window_coords[0],
                                   window_coords[1], 1:].reshape(
@@ -158,7 +158,6 @@ def post_process(matches):
 
     """
     groups = _group_overlapping_rectangles(matches)
-
     for group_matches in groups.values():
         mins = numpy.stack(numpy.array(m[0]) for m in group_matches)
         maxs = numpy.stack(numpy.array(m[1]) for m in group_matches)
@@ -184,8 +183,10 @@ if __name__ == "__main__":
 
     for pt1, pt2, present_prob, letter_probs in post_process(
                                                   detect(im_gray, param_vals)):
-        pt1 = tuple(reversed(map(int, pt1)))
-        pt2 = tuple(reversed(map(int, pt2)))
+        #import pdb
+        #pdb.set_trace()
+        pt1 = tuple(map(int,reversed(pt1)))
+        pt2 = tuple(map(int,reversed(pt2)))
 
         code = letter_probs_to_code(letter_probs)
 
