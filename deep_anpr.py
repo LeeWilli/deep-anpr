@@ -12,7 +12,7 @@ from detect import letter_probs_to_code
 
 class DeepANPR(object):
     def __init__(self, param_file):
-        f = numpy.load(sys.argv[2])
+        f = numpy.load(param_file)
         self.param_vals = [f[n] for n in sorted(f.files, key=lambda s: int(s[4:]))]
 
     def select_code(self, codes):
@@ -31,6 +31,6 @@ class DeepANPR(object):
             pt2 = tuple(map(int, reversed(pt2)))
 
             code = letter_probs_to_code(letter_probs)
-            codes.append(self, code)
+            codes.append( code)
 
         return self.select_code(codes)
