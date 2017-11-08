@@ -40,7 +40,8 @@ class DeepANPR(object):
         """
 
         # Convert the image to various scales.
-        scaled_ims = list(make_scaled_ims(im, model.WINDOW_SHAPE))
+        MIN_SHAPE = (300,300)
+        scaled_ims = list(make_scaled_ims(im, MIN_SHAPE))
 
         # Execute the model at each scale.
         y_vals = []
@@ -57,7 +58,7 @@ class DeepANPR(object):
         # to the stride size, and pixel coordinates.
         for i, (scaled_im, y_val) in enumerate(zip(scaled_ims, y_vals)):
             for window_coords in numpy.argwhere(y_val[0, :, :, 0] >
-                                                        -math.log(1. / 0.59 - 1)):
+                                                        -math.log(1. / 0.99 - 1)):
                 letter_probs = (y_val[0,
                                 window_coords[0],
                                 window_coords[1], 1:].reshape(

@@ -33,10 +33,11 @@ __all__ = (
 
 import numpy
 
-
+PROVINCE = "苏"
 DIGITS = "0123456789"
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-CHARS = LETTERS + DIGITS
+CHARS0 = LETTERS + DIGITS
+CHARS = CHARS0 + PROVINCE
 
 def softmax(a):
     exps = numpy.exp(a.astype(numpy.float64))

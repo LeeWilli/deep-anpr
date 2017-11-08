@@ -49,7 +49,7 @@ from PIL import ImageFont
 import common
 
 FONT_DIR = "./fonts"
-FONT_HEIGHT = 32  # Pixel size to which the chars are resized
+FONT_HEIGHT = 14  # Pixel size to which the chars are resized
 
 OUTPUT_SHAPE = (64, 128)
 
@@ -60,13 +60,11 @@ def make_char_ims(font_path, output_height):
     font_size = output_height * 4
 
     font = ImageFont.truetype(font_path, font_size)
-
     height = max(font.getsize(c)[1] for c in CHARS)
 
     for c in CHARS:
         width = font.getsize(c)[0]
         im = Image.new("RGBA", (width, height), (0, 0, 0))
-
         draw = ImageDraw.Draw(im)
         draw.text((0, 0), c, (255, 255, 255), font=font)
         scale = float(output_height) / height
@@ -98,10 +96,10 @@ def euler_to_mat(yaw, pitch, roll):
 
 def pick_colors():
     first = True
-    while first or plate_color - text_color < 0.3:
+    while first or text_color - plate_color < 0.3:
         text_color = random.random()
         plate_color = random.random()
-        if text_color > plate_color:
+        if text_color < plate_color:
             text_color, plate_color = plate_color, text_color
         first = False
     return text_color, plate_color
@@ -123,9 +121,9 @@ def make_affine_transform(from_shape, to_shape,
                            (max_scale - min_scale) * 0.5 * scale_variation)
     if scale > max_scale or scale < min_scale:
         out_of_bounds = True
-    roll = random.uniform(-0.3, 0.3) * rotation_variation
-    pitch = random.uniform(-0.2, 0.2) * rotation_variation
-    yaw = random.uniform(-1.2, 1.2) * rotation_variation
+    roll = random.uniform(-0.0, 0.0) * rotation_variation
+    pitch = random.uniform(-0.4, -0.2) * rotation_variation
+    yaw = random.uniform(-0.5, 0.0) * rotation_variation
 
     # Compute a bounding box on the skewed input image (`from_shape`).
     M = euler_to_mat(yaw, pitch, roll)[:2, :2]
@@ -158,15 +156,14 @@ def make_affine_transform(from_shape, to_shape,
 
 
 def generate_code():
-    return "{}{}{}{} {}{}{}".format(
-        random.choice(common.LETTERS),
+    return "{}{} {}{}{}{}{}".format(
+        random.choice(common.PROVINCE),
+        random.choice("A"),
         random.choice(common.LETTERS),
         random.choice(common.DIGITS),
+        random.choice(common.CHARS0),
         random.choice(common.DIGITS),
-        random.choice(common.LETTERS),
-        random.choice(common.LETTERS),
-        random.choice(common.LETTERS))
-
+        random.choice(common.DIGITS))
 
 def rounded_rect(shape, radius):
     out = numpy.ones(shape)
@@ -186,7 +183,8 @@ def rounded_rect(shape, radius):
 def generate_plate(font_height, char_ims):
     h_padding = random.uniform(0.2, 0.4) * font_height
     v_padding = random.uniform(0.1, 0.3) * font_height
-    spacing = font_height * random.uniform(-0.05, 0.05)
+    #spacing = font_height * random.uniform(-0.05, 0.05)
+    spacing = font_height * random.uniform(-0.00, 0.09)
     radius = 1 + int(font_height * 0.1 * random.random())
 
     code = generate_code()
@@ -213,12 +211,12 @@ def generate_plate(font_height, char_ims):
 
     return plate, rounded_rect(out_shape, radius), code.replace(" ", "")
 
-
+cv2.CV_LOAD_IMAGE_COLOR = 0
 def generate_bg(num_bg_images):
     found = False
     while not found:
         fname = "bgs/{:08d}.jpg".format(random.randint(0, num_bg_images - 1))
-        bg = cv2.imread(fname, cv2.CV_LOAD_IMAGE_GRAYSCALE) / 255.
+        bg = cv2.imread(fname, cv2.CV_LOAD_IMAGE_COLOR) / 255.
         if (bg.shape[1] >= OUTPUT_SHAPE[1] and
             bg.shape[0] >= OUTPUT_SHAPE[0]):
             found = True
@@ -238,11 +236,11 @@ def generate_im(char_ims, num_bg_images):
     M, out_of_bounds = make_affine_transform(
                             from_shape=plate.shape,
                             to_shape=bg.shape,
-                            min_scale=0.6,
-                            max_scale=0.875,
+                            min_scale=1,#0.5,
+                            max_scale=1,#0.775,
                             rotation_variation=1.0,
-                            scale_variation=1.5,
-                            translation_variation=1.2)
+                            scale_variation=1.0,
+                            translation_variation=1)#1.2)
     plate = cv2.warpAffine(plate, M, (bg.shape[1], bg.shape[0]))
     plate_mask = cv2.warpAffine(plate_mask, M, (bg.shape[1], bg.shape[0]))
 
@@ -287,6 +285,6 @@ if __name__ == "__main__":
     for img_idx, (im, c, p) in enumerate(im_gen):
         fname = "test/{:08d}_{}_{}.png".format(img_idx, c,
                                                "1" if p else "0")
-        print fname
+        print(fname)
         cv2.imwrite(fname, im * 255.)
 
