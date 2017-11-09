@@ -165,6 +165,7 @@ def generate_code():
         random.choice(common.DIGITS),
         random.choice(common.DIGITS))
 
+
 def rounded_rect(shape, radius):
     out = numpy.ones(shape)
     out[:radius, :radius] = 0.0

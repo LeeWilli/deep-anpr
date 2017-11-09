@@ -40,7 +40,7 @@ class DeepANPR(object):
         """
 
         # Convert the image to various scales.
-        MIN_SHAPE = (300,300)
+        MIN_SHAPE = (300,500)
         scaled_ims = list(make_scaled_ims(im, MIN_SHAPE))
 
         # Execute the model at each scale.
